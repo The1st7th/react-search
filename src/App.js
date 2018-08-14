@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "react-dom";
 import { makeData, Logo, Tips } from "./Utils";
+import {FormGroup, FormControl} from 'react-bootstrap';
 import _ from "lodash";
 
 // Import React Table
@@ -51,13 +52,20 @@ class App extends React.Component {
       // data: makeData()
       data: reformatteddata
     };
-    this.dataload = this.dataload.bind(this)
+    this.dataload = this.dataload.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+    var _url = "";
+
   }
+ 
   componentDidMount() {
     console.log("enter");
     this.dataload().then(data=>{
       this.setState({data});
     });
+  }
+  onSubmit(e){
+    e.preventDefault();
   }
   dataload(){
     return new Promise((resolve, reject)=>{
@@ -67,7 +75,6 @@ class App extends React.Component {
       xhr.responseType='json';
       xhr.onload = function(){
         if (xhr.status === 200) {
-          console.log("200");
           var newdata = xhr.response;
           console.log(newdata);
           var reformatteddata = newdata.map(obj => {
@@ -86,15 +93,20 @@ class App extends React.Component {
 
       }
       xhr.send();
-    }
-
-  )
+    })
   }
   render() {
     const { data } = this.state;
     // now use the new TreeTable component
     return (
       <div>
+      <form id ="reset">
+      <FormGroup >
+      <FormControl type="text" id="title" placeholder="title" onChange={(e)=>{this._url=e.target.value}} />
+      </FormGroup>
+      <button onClick ={(e) =>this.onSubmit(e)}>submit</button>
+      </form>
+
         <TreeTable
           filterable
           defaultFilterMethod={(filter, row, column) => {
