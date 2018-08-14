@@ -4,6 +4,7 @@ import React from 'react';
 
 export default (Component) => {
   const wrapper = (componentProps) => {
+    
     const TrComponent = (props) => {
       const { ri, ...rest } = props;
       if (ri && ri.groupedByPivot) {

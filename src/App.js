@@ -10,14 +10,34 @@ import "react-table/react-table.css";
 // pull in the HOC
 import treeTableHOC from "react-table/lib/hoc/treeTable";
 
-import testData from "./test_data";
+import testData from "./test_data2";
 
+var reformatteddata = testData.map(obj => {
+  return { ...obj.body.attendee, 
+      error: obj.error,
+      created_at: obj.created_at,
+      function:obj.body.function
+
+  }
+}) 
+// [];
+// for (var i = 0; i <testData.length; i++){
+//   var object2={"create_at":""};
+ 
+ 
+//   object2 = Object.assign(object2, testData[i].created_at);
+//   reformatteddata.push(object2);
+  
+  
+// }
+// console.log(reformatteddata);
 // wrap ReacTable in it
 // the HOC provides the configuration for the TreeTable
 const TreeTable = treeTableHOC(ReactTable);
 
 function getTdProps(state, ri, ci) {
   console.log({ state, ri, ci });
+  
   return {};
 }
 
@@ -29,8 +49,46 @@ class App extends React.Component {
     super();
     this.state = {
       // data: makeData()
-      data: testData
+      data: reformatteddata
     };
+    this.dataload = this.dataload.bind(this)
+  }
+  componentDidMount() {
+    console.log("enter");
+    this.dataload().then(data=>{
+      this.setState({data});
+    });
+  }
+  dataload(){
+    return new Promise((resolve, reject)=>{
+      var xhr = new XMLHttpRequest();
+      let url = "https://files.prolaera.com/errors/kinesis/msGraphStream-prod/msGraphStream-prod_08_13_2018.json";
+      xhr.open('Get',url,true);
+      xhr.responseType='json';
+      xhr.onload = function(){
+        if (xhr.status === 200) {
+          console.log("200");
+          var newdata = xhr.response;
+          console.log(newdata);
+          var reformatteddata = newdata.map(obj => {
+            return { ...obj.body.attendee, 
+                error: obj.error,
+                created_at: obj.created_at,
+                function:obj.body.function
+          
+            }
+          }) 
+          resolve(reformatteddata);
+        }
+        else{
+          reject(Error(xhr.statusText));
+        }
+
+      }
+      xhr.send();
+    }
+
+  )
   }
   render() {
     const { data } = this.state;
@@ -40,6 +98,7 @@ class App extends React.Component {
         <TreeTable
           filterable
           defaultFilterMethod={(filter, row, column) => {
+            
             const id = filter.pivotId || filter.id;
             return row[id] !== undefined
               ? String(row[id])
@@ -48,45 +107,41 @@ class App extends React.Component {
               : true;
           }}
           data={data}
-          pivotBy={["state", "post", "city"]}
+          pivotBy={["company_id","profile_uid"]}
           columns={[
             // we only require the accessor so TreeTable
             // can handle the pivot automatically
             {
-              accessor: "state"
+              accessor: "company_id"
             },
             {
-              accessor: "post"
+              accessor: "profile_uid"
             },
-            {
-              accessor: "city"
-            },
+          
+
 
             // any other columns we want to display
             {
-              Header: "First Name",
-              accessor: "first_name"
+              Header: "Company ID",
+              accessor: "company_id"
             },
             {
-              Header: "Last Name",
-              accessor: "last_name"
-            },
-            {
-              Header: "Company Name",
-              accessor: "company_name"
-            },
-            {
-              Header: "Address",
-              accessor: "address"
-            },
-            {
-              Header: "Phone 1",
-              accessor: "phone1"
-            },
-            {
-              Header: "Email",
-              accessor: "email"
+              Header: "Profile UID",
+              accessor: "profile_uid"
             }
+            ,
+            {
+               Header: "Created_at",
+               accessor: "created_at"
+             },
+             {
+               Header: "Function",
+               accessor: "function"
+             },
+             {
+               Header: "Error",
+               accessor: "error"
+             }
           ]}
           defaultPageSize={10}
           SubComponent={row => {
